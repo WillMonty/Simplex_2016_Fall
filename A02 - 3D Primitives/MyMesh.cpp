@@ -275,8 +275,29 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//William Montgomery Cone
+	vector3 originPoint(0, (-1 * a_fHeight) / 2, 0);
+	vector3 topPoint(0, originPoint.y + a_fHeight, 0);
+	float angleDeg = 360 / (a_nSubdivisions * 1.0f);
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Points for a tri on the bottom of the cone
+		vector3 bPoint1 = originPoint;
+		vector3 bPoint2(glm::cos(glm::radians(angleDeg * i)) * a_fRadius,  //Cos of current angle * radius
+						originPoint.y,									   //Origin y
+						glm::sin(glm::radians(angleDeg * i)) * a_fRadius); //Sin of current angle * radius
+		vector3 bPoint3(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fRadius, //Cos of next angle * radius
+						originPoint.y,											//Origin y
+						glm::sin(glm::radians(angleDeg * (i + 1))) * a_fRadius);//Sin of next angle * radius
+
+		//Add bottom tri
+		AddTri(bPoint1, bPoint2, bPoint3);
+
+		//Add the tri that connects to that bottom tri and touches the top of the cone
+		AddTri(topPoint, bPoint3, bPoint2);
+	}
+	
 	// -------------------------------
 
 	// Adding information about color
@@ -299,8 +320,42 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//William Montgomery Cylinder
+	vector3 originPoint(0, (-1 * a_fHeight)/2, 0);
+	float angleDeg = 360 / (a_nSubdivisions * 1.0f);
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Points for a tri on the bottom of the cylinder
+		vector3 bPoint1 = originPoint;
+		vector3 bPoint2(glm::cos(glm::radians(angleDeg * i)) * a_fRadius,  //Cos of current angle * radius
+						originPoint.y,									   //Origin y
+						glm::sin(glm::radians(angleDeg * i)) * a_fRadius); //Sin of current angle * radius
+
+		vector3 bPoint3(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fRadius, //Cos of next angle * radius
+						originPoint.y,											//Origin y
+						glm::sin(glm::radians(angleDeg * (i + 1))) * a_fRadius);//Sin of next angle * radius
+
+		AddTri(bPoint1, bPoint2, bPoint3);
+
+		//Points for same tri on the top of the cylinder (add height)
+		vector3 tPoint1(originPoint.x,
+						originPoint.y + a_fHeight,
+						originPoint.z);
+
+		vector3 tPoint2(bPoint2.x,
+						bPoint2.y + a_fHeight,
+						bPoint2.z);
+
+		vector3 tPoint3(bPoint3.x,
+						bPoint3.y + a_fHeight,
+						bPoint3.z);
+
+		AddTri(tPoint1, tPoint3, tPoint2);
+
+		//Quad that connects these two tris
+		AddQuad(bPoint3, bPoint2, tPoint3, tPoint2);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -329,8 +384,63 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	//William Montgomery Tube
+	//AddTri(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft)
+	//AddQuad(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft, vector3 a_vTopRight)
+
+	vector3 originPoint(0, (-1 * a_fHeight) / 2, 0);
+
+	float angleDeg = 360 / (a_nSubdivisions * 1.0f);
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Points for a quad on the bottom of the tube
+		//Outer Radius
+		vector3 bPoint1(glm::cos(glm::radians(angleDeg * i)) * a_fOuterRadius,  //Cos of current angle * outer radius
+			originPoint.y,														//Origin y
+			glm::sin(glm::radians(angleDeg * i)) * a_fOuterRadius);				//Sin of current angle * outer radius
+
+		vector3 bPoint2(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fOuterRadius,  //Cos of next angle * outer radius
+			originPoint.y,															  //Origin y
+			glm::sin(glm::radians(angleDeg * (i + 1))) * a_fOuterRadius);			  //Sin of next angle *  outer radius
+
+		//Inner Radius
+		vector3 bPoint3(glm::cos(glm::radians(angleDeg * i)) * a_fInnerRadius,  //Cos of current angle * inner radius
+			originPoint.y,														//Origin y
+			glm::sin(glm::radians(angleDeg * i)) * a_fInnerRadius);				//Sin of current angle * inner radius
+
+		vector3 bPoint4(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fInnerRadius, //Cos of next angle * inner radius
+			originPoint.y,															 //Origin y
+			glm::sin(glm::radians(angleDeg * (i + 1))) * a_fInnerRadius);			 //Sin of next angle *  inner radius
+
+		AddQuad(bPoint1, bPoint2, bPoint3, bPoint4);
+
+		//Points for a quad on the top of the tube
+		//Outer Radius
+		vector3 tPoint1(bPoint1.x,
+			bPoint1.y + a_fHeight,
+			bPoint1.z);
+
+		vector3 tPoint2(bPoint2.x,
+			bPoint2.y + a_fHeight,
+			bPoint2.z);
+		//Inner Radius
+		vector3 tPoint3(bPoint3.x,
+			bPoint3.y + a_fHeight,
+			bPoint3.z);
+
+		vector3 tPoint4(bPoint4.x,
+			bPoint4.y + a_fHeight,
+			bPoint4.z);
+
+		AddQuad(tPoint2, tPoint1, tPoint4, tPoint3);
+
+		//Quads connecting top and bottom
+		//Facing outward
+		AddQuad(bPoint2, bPoint1, tPoint2, tPoint1);
+		//Facing inward
+		AddQuad(bPoint3, bPoint4, tPoint3, tPoint4);
+	}
 	// -------------------------------
 
 	// Adding information about color
