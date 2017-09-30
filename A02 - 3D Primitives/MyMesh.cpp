@@ -385,9 +385,6 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	//William Montgomery Tube
-	//AddTri(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft)
-	//AddQuad(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft, vector3 a_vTopRight)
-
 	vector3 originPoint(0, (-1 * a_fHeight) / 2, 0);
 
 	float angleDeg = 360 / (a_nSubdivisions * 1.0f);
@@ -397,21 +394,21 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 		//Points for a quad on the bottom of the tube
 		//Outer Radius
 		vector3 bPoint1(glm::cos(glm::radians(angleDeg * i)) * a_fOuterRadius,  //Cos of current angle * outer radius
-			originPoint.y,														//Origin y
-			glm::sin(glm::radians(angleDeg * i)) * a_fOuterRadius);				//Sin of current angle * outer radius
+						originPoint.y,											//Origin y
+						glm::sin(glm::radians(angleDeg * i)) * a_fOuterRadius);	//Sin of current angle * outer radius
 
-		vector3 bPoint2(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fOuterRadius,  //Cos of next angle * outer radius
-			originPoint.y,															  //Origin y
-			glm::sin(glm::radians(angleDeg * (i + 1))) * a_fOuterRadius);			  //Sin of next angle *  outer radius
+		vector3 bPoint2(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fOuterRadius, //Cos of next angle * outer radius
+						originPoint.y,												 //Origin y
+						glm::sin(glm::radians(angleDeg * (i + 1))) * a_fOuterRadius);//Sin of next angle *  outer radius
 
 		//Inner Radius
 		vector3 bPoint3(glm::cos(glm::radians(angleDeg * i)) * a_fInnerRadius,  //Cos of current angle * inner radius
-			originPoint.y,														//Origin y
-			glm::sin(glm::radians(angleDeg * i)) * a_fInnerRadius);				//Sin of current angle * inner radius
+						originPoint.y,														//Origin y
+						glm::sin(glm::radians(angleDeg * i)) * a_fInnerRadius);				//Sin of current angle * inner radius
 
 		vector3 bPoint4(glm::cos(glm::radians(angleDeg * (i + 1))) * a_fInnerRadius, //Cos of next angle * inner radius
-			originPoint.y,															 //Origin y
-			glm::sin(glm::radians(angleDeg * (i + 1))) * a_fInnerRadius);			 //Sin of next angle *  inner radius
+						originPoint.y,												 //Origin y
+						glm::sin(glm::radians(angleDeg * (i + 1))) * a_fInnerRadius);//Sin of next angle *  inner radius
 
 		AddQuad(bPoint1, bPoint2, bPoint3, bPoint4);
 
@@ -490,14 +487,41 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
-		a_nSubdivisions = 6;
+	//if (a_nSubdivisions > 6) Commented out to allow more subdivisions for presentation
+	//	a_nSubdivisions = 6;
 
 	Release();
 	Init();
 
-	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//William Montgomery Sphere
+
+	vector3 originPoint(0, (-1 * a_fRadius) / 2, 0);
+	float angleLat = 360 / (a_nSubdivisions * 1.0f); //Angle amount to change per subdivision for latitude
+	float angleLong = 180 / (a_nSubdivisions * 1.0f); //Angle amount to change per subdivision for longitude
+
+	for (int i = 0; i < a_nSubdivisions; i++) //Current latitude slice
+	{
+		for (int j = 0; j < a_nSubdivisions; j++) //Current longitude slice
+		{
+			vector3 bLeft(glm::sin(glm::radians(angleLong * j)) * glm::sin(glm::radians(angleLat * i)) * a_fRadius,   //Sin of current long * Sin of current lat * r
+							glm::cos(glm::radians(angleLong * j)) * a_fRadius,										  //Cos of current long * r
+							glm::sin(glm::radians(angleLong * j)) * glm::cos(glm::radians(angleLat * i)) * a_fRadius);//Sin of current long * Cos of current lat * r
+
+			vector3 bRight(glm::sin(glm::radians(angleLong * (j + 1))) * glm::sin(glm::radians(angleLat * i)) * a_fRadius,  //Sin of next long * Sin of current lat * r
+							glm::cos(glm::radians(angleLong * (j + 1))) * a_fRadius,										//Cos of next long * r
+							glm::sin(glm::radians(angleLong * (j + 1))) * glm::cos(glm::radians(angleLat * i)) * a_fRadius);//Sin of next long * Cos of current lat * r
+
+			vector3 tLeft(glm::sin(glm::radians(angleLong * j)) * glm::sin(glm::radians(angleLat * (i + 1))) * a_fRadius,   //Sin of current long * Sin of next lat * r
+							glm::cos(glm::radians(angleLong * j)) * a_fRadius,												//Cos of current long * r
+							glm::sin(glm::radians(angleLong * j)) * glm::cos(glm::radians(angleLat * (i + 1))) * a_fRadius);//Sin of current long * Cos of next lat * r
+
+			vector3 tRight(glm::sin(glm::radians(angleLong * (j + 1))) * glm::sin(glm::radians(angleLat * (i + 1))) * a_fRadius,  //Sin of next long * Sin of next lat * r
+							glm::cos(glm::radians(angleLong * (j + 1))) * a_fRadius,											  //Cos of next long * r
+							glm::sin(glm::radians(angleLong * (j + 1))) * glm::cos(glm::radians(angleLat * (i + 1))) * a_fRadius);//Sin of next long * Cos of next lat * r
+			
+			AddQuad(bLeft, bRight, tLeft, tRight);
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
