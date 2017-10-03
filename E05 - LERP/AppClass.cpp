@@ -2,10 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
-
-	////Alberto needed this at this position for software recording.
-	//m_pWindow->setPosition(sf::Vector2i(710, 0));
+	m_sProgrammer = "William Montgomery - wgm8510@rit.edu";
 
 	//Set the position and target of the camera
 	m_pCameraMngr->SetPositionTargetAndUp(vector3(5.0f,3.0f,15.0f), ZERO_V3, AXIS_Y);
@@ -56,17 +53,26 @@ void Application::Display(void)
 
 	//calculate the current position
 	vector3 v3CurrentPos;
-	
 
+	//William Montgomery E05
+	vector3 start; //Start and end point of current trip
+	vector3 end;
+	static uint currTrip = 0; //Current trip object is on
 
+	start = m_stopsList[currTrip % m_stopsList.size()]; //Set start
+	end = m_stopsList[(currTrip + 1) % m_stopsList.size()]; //Set end without going out of list bounds
 
+	float tripTime = 1.5f; //Seconds it takes to make the trip
+	float tripPercent = MapValue(fTimer, 0.0f, tripTime, 0.0f, 1.0f); //Get percentage of trip completion by mapping value between 0.0 and 1.0
 
-	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
+	v3CurrentPos = glm::lerp(start, end, tripPercent); //Get current position with lerp
+
+	if (tripPercent >= 1.0f) //If the trip is complete
+	{
+		currTrip++;
+		fTimer = m_pSystem->GetDeltaTime(uClock); //Reset clock
+	}
 	//-------------------
-	
-
-
 	
 	matrix4 m4Model = glm::translate(v3CurrentPos);
 	m_pModel->SetModelMatrix(m4Model);
