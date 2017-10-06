@@ -1,11 +1,7 @@
 #include "AppClass.h"
 void Application::InitVariables(void)
 {
-	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
-
-	////Alberto needed this at this position for software recording.
-	//m_pWindow->setPosition(sf::Vector2i(710, 0));
+	m_sProgrammer = "William Montgomery - wgm8510@rit.edu";
 	
 	//Set the position and target of the camera
 	//(I'm at [0,0,10], looking at [0,0,0] and up is the positive Y axis)
@@ -41,6 +37,18 @@ void Application::InitVariables(void)
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
+
+		//Add new vector for this orbit
+		std::vector<vector3> currOrbit;
+		orbitStops.push_back(currOrbit);
+
+		//Calculate and add points to this orbit
+		for (int j = 0; j < i; j++)
+		{
+			//Calc next point
+			//vector3 currPoint;
+			//orbitStops[i].push_back(something);
+		}
 	}
 }
 void Application::Update(void)
@@ -67,17 +75,39 @@ void Application::Display(void)
 	*/
 	//m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
 
-	// draw a shapes
+	//Set up timer
+	static float fTimer = 0; //Store the new timer's time
+	static uint uClock = m_pSystem->GenClock(); //Generate a new clock for that timer
+	fTimer += m_pSystem->GetDeltaTime(uClock); //Get the delta time for that timer
+
+	static uint currTrip = 0; //Current trip all of the orbits are on
+	float tripTime = 1.0f; //Time it takes to get from point to point
+
+	float tripPercent = MapValue(fTimer, 0.0f, tripTime, 0.0f, 1.0f); //Get percentage of current trip' completion by mapping value between 0.0 and 1.0
+
+	//Draw shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
-		//calculate the current position
-		vector3 v3CurrentPos = ZERO_V3;
+
+
+	   //Calculate the current position
+		vector3 start; //Sub vector at current point
+		vector3 end; //Sub vector at next point
+		vector3 v3CurrentPos;
+
+
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
+	}
+
+	if (tripPercent >= 1.0f) //If the trip is complete
+	{
+		currTrip++;
+		fTimer = m_pSystem->GetDeltaTime(uClock); //Reset clock
 	}
 
 	//render list call
