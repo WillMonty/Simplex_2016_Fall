@@ -132,6 +132,7 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		break;
 	case sf::Keyboard::R:
 		m_v3Rotation = vector3(0.0f, 0.0f, 0.0f);
+		qRotation = glm::quat();
 		break;
 	}
 
@@ -422,36 +423,51 @@ void Application::ProcessKeyboard(void)
 	{
 		if (fMultiplier)
 		{
+			//qRotation.x++;
 			m_v3Rotation.x += 1.0f;
 		}
 		else
 		{
+			//qRotation.x--;
 			m_v3Rotation.x -= 1.0f;
 		}
+
+		glm::quat qAxis = glm::angleAxis(1.0f, vector3(1.0f, 0.0f, 0.0f));
+		qRotation = qRotation * qAxis;
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Y))
 	{
 		if (fMultiplier)
 		{
+			//qRotation.y++;
 			m_v3Rotation.y += 1.0f;
 		}
 		else
 		{
+			//qRotation.y--;
 			m_v3Rotation.y -= 1.0f;
 		}
+
+		glm::quat qAxis = glm::angleAxis(1.0f, vector3(0.0f, 1.0f, 0.0f));
+		qRotation = qRotation * qAxis;
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
 	{
 		if (fMultiplier)
 		{
+			//qRotation.z++;
 			m_v3Rotation.z += 1.0f;
 		}
 		else
 		{
+			//qRotation.z--;
 			m_v3Rotation.z -= 1.0f;
 		}
+
+		glm::quat qAxis = glm::angleAxis(1.0f, vector3(0.0f, 0.0f, 1.0f));
+		qRotation = qRotation * qAxis;
 	}
 }
 //Joystick
