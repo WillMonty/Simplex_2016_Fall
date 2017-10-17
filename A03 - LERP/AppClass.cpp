@@ -35,20 +35,25 @@ void Application::InitVariables(void)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
 		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
-		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
 
-		//Add new vector for this orbit
+		//New vector for this orbit
 		std::vector<vector3> currOrbit;
-		orbitStops.push_back(currOrbit);
 
+		float anglePerSide = 360.0f / i; //Get angle amount per exterior angle of n-gon
+		
 		//Calculate and add points to this orbit
 		for (int j = 0; j < i; j++)
 		{
-			//Calc next point
-			//vector3 currPoint;
-			//orbitStops[i].push_back(something);
+			//fSize used as something like a radius
+			float x = glm::cos(glm::radians(anglePerSide * j)) * fSize; //Cos of current angle * fSize
+			float y = glm::sin(glm::radians(anglePerSide * j)) * fSize; //sin of current angle * fSize
+			currOrbit.push_back(vector3(x, y, 0.0f)); //Add vector to this orbit
 		}
+
+		orbitStops.push_back(currOrbit);
+
+		fSize += 0.5f; //increment the size for the next orbit
 	}
 }
 void Application::Update(void)
@@ -73,7 +78,7 @@ void Application::Display(void)
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
+	m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
 
 	//Set up timer
 	static float fTimer = 0; //Store the new timer's time
@@ -86,25 +91,22 @@ void Application::Display(void)
 	float tripPercent = MapValue(fTimer, 0.0f, tripTime, 0.0f, 1.0f); //Get percentage of current trip' completion by mapping value between 0.0 and 1.0
 
 	//Draw shapes
-	for (uint i = 0; i < m_uOrbits; ++i)
+	for (uint i = 0; i < m_uOrbits; i++)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
 
-
-
 	   //Calculate the current position
-		vector3 start; //Sub vector at current point
-		vector3 end; //Sub vector at next point
-		vector3 v3CurrentPos;
-
+		vector3 start = orbitStops[i][currTrip % orbitStops[i].size()]; //Sub vector at current point
+		vector3 end = orbitStops[i][(currTrip + 1) % orbitStops[i].size()]; //Sub vector at next point
+		vector3 v3CurrentPos = glm::lerp(start, end, tripPercent); //LERP position
 
 		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
 
 		//draw spheres
-		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
+		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.2)), C_WHITE);
 	}
 
-	if (tripPercent >= 1.0f) //If the trip is complete
+	if (tripPercent >= tripTime) //If the trip is complete
 	{
 		currTrip++;
 		fTimer = m_pSystem->GetDeltaTime(uClock); //Reset clock
