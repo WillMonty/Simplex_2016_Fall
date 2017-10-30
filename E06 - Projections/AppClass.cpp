@@ -57,29 +57,29 @@ void Application::Display(void)
 		break;
 	case 2:
 		m_pCamera->ResetCamera();
-		m_pCamera->SetPerspective(false);
+		m_pCamera->SetPerspective(false); //Make orthographic
 		break;
 	case 3:
 		m_pCamera->ResetCamera();
-		m_pCamera->SetPositionTargetAndUp(vector3(40.0f, 0.0f, 0.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 0.0f, -1.0f));
+		m_pCamera->SetPositionTargetAndUp(vector3(40.0f, 0.0f, 0.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 0.0f, -1.0f)); //Move camera out and change up
 		break;
 	case 4:
 		m_pCamera->ResetCamera();
-		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, -15.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f));
+		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, -15.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f)); //Move camera to opposite end of shapes
 		break;
 	case 5:
 		m_pCamera->ResetCamera();
-		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, -10.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f));
-		//Can't get far away enough to match scene since triangle will show up? Must be missing something.
+		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, -15.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f));
+		m_pCamera->SetNearFar(vector2(7.0f, 20.0f)); //Clip blue cone off planes
 		break;
 	case 6:
 		m_pCamera->ResetCamera();
 		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, -15.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, 1.0f, 0.0f));
-		//Same as 4, but red torus is gone??
+		m_pCamera->SetNearFar(vector2(1.0f, 10.0f)); //Clip red torus off planes
 		break;
 	case 7:
 		m_pCamera->ResetCamera();
-		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, 10.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, -1.0f, 0.0f));
+		m_pCamera->SetPositionTargetAndUp(vector3(0.0f, 0.0f, 10.0f), vector3(0.0f, 0.0f, 0.0f), vector3(0.0f, -1.0f, 0.0f)); //Invert camera's up direction
 		break;
 	}
 
