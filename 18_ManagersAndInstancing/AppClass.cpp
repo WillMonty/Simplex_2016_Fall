@@ -22,6 +22,17 @@ void Application::InitVariables(void)
 	//Get the singleton
 	m_pMyMeshMngr = MyMeshManager::GetInstance();
 	m_pMyMeshMngr->SetCamera(m_pCamera);
+
+	m_pMesh = new MyMesh();
+	m_pMesh->GenerateCylinder(1.0f, 2.0f, 6, C_PURPLE);
+
+	//Instance rendering
+	for (uint i = 0; i < 5000; i++)
+	{
+		matrix4* pMatrix = new matrix4();
+		*pMatrix = glm::translate(IDENTITY_M4, vector3(i * 2, 0, 0));
+		m_m4List.push_back(pMatrix);
+	}
 	
 	
 }
@@ -37,21 +48,39 @@ void Application::Update(void)
 	CameraRotation();
 
 	//Add objects to the Manager
-	uint nCount = 0;
-	for (int j = -420; j < 420; j += 2)
-	{
-		for (int i = -420; i < 420; i += 2)
-		{
-			m_pMyMeshMngr->AddConeToRenderList(glm::translate(vector3(i, 0.0f, j)));
-			nCount++;
-		}
-	}
-	m_pMeshMngr->Print("Objects: " + std::to_string(nCount) + "\n", C_BLUE);
+	//uint nCount = 0;
+	//for (int j = -420; j < 420; j += 2)
+	//{
+	//	for (int i = -420; i < 420; i += 2)
+	//	{
+	//		m_pMyMeshMngr->AddConeToRenderList(glm::translate(vector3(i, 0.0f, j)));
+	//		nCount++;
+	//	}
+	//}
+	//m_pMeshMngr->Print("Objects: " + std::to_string(nCount) + "\n", C_BLUE);
 }
 void Application::Display(void)
 {
 	//Clear the screen
 	ClearScreen();
+
+	//Render call per object (trash with high number objects)
+	/*
+	for (uint i = 0; i < 500; i++)
+	{
+		m_pMesh->Render(m_pCamera, glm::translate(IDENTITY_M4, vector3(i * 2, 0, 0)) * ToMatrix4(m_qArcBall));
+	}
+	*/
+
+	//m_pMesh->Render(m_pCamera, m_m4List);
+
+	//Instance rendering with list. Has drawbacks with transformations, but runs way better.
+	for (uint i = 0; i < 5000; i++)
+	{
+		*m_m4List[i] = glm::translate(IDENTITY_M4, vector3(i, 0.0f, 0.0f));
+	}
+
+	m_pMesh->Render(m_pCamera, m_m4List);
 
 	//Render the list of MyMeshManager
 	m_pMyMeshMngr->Render();
@@ -73,6 +102,11 @@ void Application::Display(void)
 }
 void Application::Release(void)
 {
+	for (uint i = 0; i < 5000; i++)
+	{
+		SafeDelete(m_m4List[i]);
+	}
+
 	//release the singleton
 	MyMeshManager::ReleaseInstance();
 

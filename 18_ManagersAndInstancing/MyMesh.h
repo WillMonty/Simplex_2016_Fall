@@ -113,6 +113,8 @@ public:
 	OUTPUT: ---
 	*/
 	void Render(MyCamera* a_pCamera, matrix4 a_mModel);
+
+	void Render(MyCamera* a_pCamera, std::vector<matrix4*> a_ToWorldList);
 	/*
 	USAGE: Will render this mesh a_ToWorlsList size times
 	ARGUMENTS:
