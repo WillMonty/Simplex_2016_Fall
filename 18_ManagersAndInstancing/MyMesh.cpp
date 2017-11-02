@@ -386,6 +386,10 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
 }
+std::vector<vector3> Simplex::MyMesh::GetVertexList(void)
+{
+	return m_lVertexPos;
+}
 void MyMesh::Render(MyCamera* a_pCamera, matrix4 a_mModel)
 {
 	Render(a_pCamera->GetProjectionMatrix(), a_pCamera->GetViewMatrix(), a_mModel);

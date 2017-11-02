@@ -219,6 +219,8 @@ public:
 	*/
 	void GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color = C_WHITE);
 #pragma endregion
+
+	std::vector<vector3> GetVertexList(void);
 };
 
 }//namespace Simplex
