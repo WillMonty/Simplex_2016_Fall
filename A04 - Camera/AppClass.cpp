@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "William Montgomery - wgm8510@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -18,6 +18,9 @@ void Application::InitVariables(void)
 			vector3(0.0f, 3.0f, 20.0f), //Where my eyes are
 			vector3(0.0f, 3.0f, 19.0f), //where what I'm looking at is
 			AXIS_Y);					//what is up
+
+	//Add a camera to the camera manager?
+	//m_pCameraMngr->AddCamera(m_pCamera->)
 
 	//Get the singleton
 	m_pMyMeshMngr = MyMeshManager::GetInstance();
