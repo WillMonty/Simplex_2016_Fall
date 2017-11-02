@@ -12,6 +12,14 @@ namespace Simplex
 
 class MyCamera
 {
+	//William Montgomery Vars
+	//Initial directions of camera. Change when camera rotates
+	vector3 forward = vector3(0.0f, 0.0f, -1.0f);
+	vector3 up = vector3(0.0f, 1.0f, 0.0f);
+	vector3 right = vector3(1.0f, 0.0f, 0.0f);
+	vector3 above = vector3(0.0f, 1.0f, 0.0f); //Just above the camera. Used to orient up vector.
+	///////////////////////////////////////////////////////////////
+
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
@@ -29,6 +37,14 @@ class MyCamera
 	matrix4 m_m4View; //View matrix
 	matrix4 m_m4Projection; //Projection Matrix
 public:
+	
+	//William Montgomery Method Headers
+	void MoveForward(float distance);
+	void MoveLeftRight(float distance);
+	void Yaw(float degree);
+	void Pitch(float degree);
+	///////////////////////////////////
+
 	/*
 	USAGE: Constructor
 	ARGUMENTS: ---

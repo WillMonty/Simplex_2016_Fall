@@ -1,6 +1,47 @@
 #include "MyCamera.h"
 using namespace Simplex;
 
+//William Montgomery Methods
+void Simplex::MyCamera::MoveForward(float distance)
+{
+	m_v3Position += forward * distance;
+	m_v3Target += forward * distance;
+	above += forward * distance;
+	
+	//Change direction vectors now that camera has moved
+	up = glm::normalize(above - m_v3Position);
+	forward = glm::normalize(m_v3Target - m_v3Position);
+	right = glm::normalize(glm::cross(forward, up));
+
+	CalculateProjectionMatrix(); //Recaclulate projection
+}
+
+void Simplex::MyCamera::MoveLeftRight(float distance)
+{
+	m_v3Position += right * distance;
+	m_v3Target += right * distance;
+	above += right * distance;
+
+	//Change direction vectors now that camera has moved
+	up = glm::normalize(above - m_v3Position);
+	forward = glm::normalize(m_v3Target - m_v3Position);
+	right = glm::normalize(glm::cross(forward, up));
+
+	CalculateProjectionMatrix(); //Recaclulate projection
+}
+
+void Simplex::MyCamera::Yaw(float degree)
+{
+
+}
+
+void Simplex::MyCamera::Pitch(float degree)
+{
+	float angleRad = glm::radians(degree);
+}
+
+////////////////////////////////////////////////////////////////////
+
 //Accessors
 void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3Position; }
 
