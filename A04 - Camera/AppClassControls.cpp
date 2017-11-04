@@ -369,8 +369,11 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 
-	m_pCameraMngr->ChangeYaw(fAngleY * 3.0f);
-	m_pCameraMngr->ChangePitch(-fAngleX * 3.0f);
+	//MyCamera pitch and yaw functions
+	float sensitivityFactor = 120.0f; //Lower this for lower rotation sensitivity
+
+	m_pCamera->Yaw(-fAngleY  * sensitivityFactor);
+	m_pCamera->Pitch(fAngleX * sensitivityFactor);
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
 //Keyboard

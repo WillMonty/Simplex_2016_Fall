@@ -30,14 +30,26 @@ void Simplex::MyCamera::MoveLeftRight(float distance)
 	CalculateProjectionMatrix(); //Recaclulate projection
 }
 
-void Simplex::MyCamera::Yaw(float degree)
-{
-
-}
-
 void Simplex::MyCamera::Pitch(float degree)
 {
 	float angleRad = glm::radians(degree);
+
+	pitchYawRoll.x += angleRad; //Keep track of pitch rotation
+
+	forward = glm::normalize(forward * glm::cos(angleRad) + up * glm::sin(angleRad));
+
+	up = glm::cross(forward, right);
+}
+
+void Simplex::MyCamera::Yaw(float degree)
+{
+	float angleRad = glm::radians(degree);
+
+	pitchYawRoll.y += angleRad; //Keep track of yaw rotation
+
+	forward = glm::normalize(forward * glm::cos(angleRad) - right * glm::sin(angleRad));
+
+	right = glm::cross(forward, up);
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -47,7 +59,7 @@ void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3P
 
 void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Target = a_v3Target; }
 
-void Simplex::MyCamera::SetUp(vector3 a_v3Up) { m_v3Up = a_v3Up; }
+void Simplex::MyCamera::SetUp(vector3 a_v3Up) { up = a_v3Up; }
 
 void Simplex::MyCamera::SetPerspective(bool a_bPerspective) { m_bPerspective = a_bPerspective; }
 
@@ -80,7 +92,7 @@ Simplex::MyCamera::MyCamera(MyCamera const& other)
 {
 	m_v3Position = other.m_v3Position;
 	m_v3Target = other.m_v3Target;
-	m_v3Up = other.m_v3Up;
+	up = other.up;
 
 	m_bPerspective = other.m_bPerspective;
 
@@ -101,7 +113,7 @@ MyCamera& Simplex::MyCamera::operator=(MyCamera const& other)
 	if (this != &other)
 	{
 		Release();
-		SetPositionTargetAndUp(other.m_v3Position, other.m_v3Target, other.m_v3Up);
+		SetPositionTargetAndUp(other.m_v3Position, other.m_v3Target, other.up);
 		MyCamera temp(other);
 		Swap(temp);
 	}
@@ -125,7 +137,7 @@ void Simplex::MyCamera::Swap(MyCamera & other)
 {
 	std::swap(m_v3Position, other.m_v3Position);
 	std::swap(m_v3Target, other.m_v3Target);
-	std::swap(m_v3Up, other.m_v3Up);
+	std::swap(up, other.up);
 
 	std::swap(m_bPerspective, other.m_bPerspective);
 
@@ -150,7 +162,7 @@ void Simplex::MyCamera::ResetCamera(void)
 {
 	m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
-	m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
+	up = vector3(0.0f, 1.0f, 0.0f); //What is up
 
 	m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -170,14 +182,30 @@ void Simplex::MyCamera::SetPositionTargetAndUp(vector3 a_v3Position, vector3 a_v
 {
 	m_v3Position = a_v3Position;
 	m_v3Target = a_v3Target;
-	m_v3Up = a_v3Position + a_v3Upward;
+	up = a_v3Position + a_v3Upward;
 	CalculateProjectionMatrix();
 }
 
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
-	//Calculate the look at
-	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Up);
+	//William Montgomery View Matrix
+	//Calculate rotation matrix from yaw and pitch
+	//Initialize matrices to identity
+	matrix4 pitchMat = IDENTITY_M4;
+	matrix4 yawMat = IDENTITY_M4;
+
+	//Rotate matrices according to stored angles
+	pitchMat = glm::rotate(pitchMat, pitchYawRoll.x, vector3(1.0f, 0.0f, 0.0f));
+	yawMat = glm::rotate(yawMat, pitchYawRoll.y, glm::vec3(0.0f, 1.0f, 0.0f));
+
+	//Combine for rotation matrix
+	matrix4 rotate = pitchMat * yawMat;
+
+	//Get translation vector from what camera is looking at
+	matrix4 translate = glm::translate(IDENTITY_M4, -1.0f * m_v3Target);
+
+	//Calculate the view matrix
+	m_m4View = rotate * translate;
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)

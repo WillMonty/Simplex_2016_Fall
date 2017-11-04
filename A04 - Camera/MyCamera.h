@@ -18,11 +18,11 @@ class MyCamera
 	vector3 up = vector3(0.0f, 1.0f, 0.0f);
 	vector3 right = vector3(1.0f, 0.0f, 0.0f);
 	vector3 above = vector3(0.0f, 1.0f, 0.0f); //Just above the camera. Used to orient up vector.
+	vector3 pitchYawRoll = ZERO_V3; //Holds current angles of rotations in pitch, yaw, and roll directions (Roll unused)
 	///////////////////////////////////////////////////////////////
 
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
-	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -41,9 +41,9 @@ public:
 	//William Montgomery Method Headers
 	void MoveForward(float distance);
 	void MoveLeftRight(float distance);
-	void Yaw(float degree);
 	void Pitch(float degree);
-	///////////////////////////////////
+	void Yaw(float degree);
+	///////////////////////////////////////////////////////////////
 
 	/*
 	USAGE: Constructor
