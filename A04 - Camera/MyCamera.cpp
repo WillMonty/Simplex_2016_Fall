@@ -2,6 +2,8 @@
 using namespace Simplex;
 
 //William Montgomery Methods
+
+//Moving the camera forward and back by a distance
 void Simplex::MyCamera::MoveForward(float distance)
 {
 	m_v3Position += forward * distance;
@@ -15,6 +17,7 @@ void Simplex::MyCamera::MoveForward(float distance)
 	right = glm::normalize(glm::cross(forward, up));
 }
 
+//Moving the camera left and right by a distance
 void Simplex::MyCamera::MoveLeftRight(float distance)
 {
 	m_v3Position += right * distance;
@@ -27,28 +30,37 @@ void Simplex::MyCamera::MoveLeftRight(float distance)
 	right = glm::normalize(glm::cross(forward, up));
 }
 
-void Simplex::MyCamera::Pitch(float degree)
+
+//Rotate the camera along the y axis and x axis by seperate degree amounts
+void Simplex::MyCamera::PitchYaw(float pitchDegree, float yawDegree)
 {
-	float angleRad = glm::radians(degree);
+	//Convert degress to radians
+	float pitchRad = glm::radians(pitchDegree);
+	float yawRad = glm::radians(yawDegree);
 
-	pitchYawRoll.x += angleRad; //Keep track of pitch rotation
+	//Keep track of total pitch and yaw rotation amounts
+	pitchYawRoll.x += pitchRad;
+	pitchYawRoll.y += yawRad;
 
-	forward = glm::normalize(glm::rotate(forward, angleRad, right));
-	up = glm::normalize(glm::cross(forward, right));
+	//Create pitch and yaw quaternions to represent each axis' rotation
+	qPitch = glm::angleAxis(pitchYawRoll.x, AXIS_X);
+	qYaw = glm::angleAxis(pitchYawRoll.y, AXIS_Y);
 
-	m_v3Target = m_v3Position + forward;
-}
+	//Calculate forward from pitch and yaw quaternions\
+	This one line of code is causing all of the problems with movement during rotation. I don't know how to properly combine the pitch and yaw\
+	quaternions. Below is the smoothest solution I could get. Other commented out lines calculating forward seem to be mathematically\
+	closer, but cause seizure inducing results. To better demonstrate that I had everything else correct I used this line even though I understand it is incorrect.
 
-void Simplex::MyCamera::Yaw(float degree)
-{
-	float angleRad = glm::radians(degree);
 
-	pitchYawRoll.y += angleRad; //Keep track of yaw rotation
+	//forward = glm::normalize(vector3(qPitch.x, qPitch.y, qPitch.z)); (Can't just use pitch need to combine both quats. Directions seem 90 degrees off.)
+	//forward = glm::rotate(glm::cross(qPitch, qYaw), forward); (Can't use forward to calculate forward, camera spins in tight circles when rotating)
+	forward = glm::rotate(glm::cross(qPitch, qYaw), AXIS_Z); //(Rotating around Z axis is smooth but in wrong directions. Will randomly line up?)
 
-	forward = glm::normalize(glm::rotate(forward, angleRad, up));
-	right = glm::normalize(glm::cross(forward, up));
+	//Calculate right and up based off forward vector
+	right = glm::cross(forward, AXIS_Y); //Cross forward with global y axis for right vector
+	up = glm::cross(right, forward); //Cross updated right with forward to get up vector
 
-	m_v3Target = m_v3Position + forward;
+	m_v3Target = m_v3Position + forward; //Update target based on new forward
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -188,10 +200,7 @@ void Simplex::MyCamera::SetPositionTargetAndUp(vector3 a_v3Position, vector3 a_v
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
 	//William Montgomery View Matrix
-	//Calculate rotation quaternions from yaw and pitch
-	quaternion qPitch = glm::angleAxis(pitchYawRoll.x, AXIS_X);
-	quaternion qYaw = glm::angleAxis(pitchYawRoll.y, AXIS_Y);
-
+	//Combine pitch and yaw to get full camera orientation
 	quaternion orientation = qPitch * qYaw;
 	orientation = glm::normalize(orientation);
 
