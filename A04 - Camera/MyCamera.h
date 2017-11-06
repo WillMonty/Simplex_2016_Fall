@@ -44,8 +44,6 @@ public:
 	void MoveForward(float distance);
 	void MoveLeftRight(float distance);
 	void PitchYaw(float pitchDegree, float yawDegree);
-	void Pitch(float degree);
-	void Yaw(float degree);
 	///////////////////////////////////////////////////////////////
 
 	/*
