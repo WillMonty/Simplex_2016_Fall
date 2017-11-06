@@ -7,13 +7,12 @@ void Simplex::MyCamera::MoveForward(float distance)
 	m_v3Position += forward * distance;
 	m_v3Target += forward * distance;
 	above += forward * distance;
+
 	
 	//Change direction vectors now that camera has moved
 	up = glm::normalize(above - m_v3Position);
 	forward = glm::normalize(m_v3Target - m_v3Position);
 	right = glm::normalize(glm::cross(forward, up));
-
-	CalculateProjectionMatrix(); //Recaclulate projection
 }
 
 void Simplex::MyCamera::MoveLeftRight(float distance)
@@ -26,8 +25,6 @@ void Simplex::MyCamera::MoveLeftRight(float distance)
 	up = glm::normalize(above - m_v3Position);
 	forward = glm::normalize(m_v3Target - m_v3Position);
 	right = glm::normalize(glm::cross(forward, up));
-
-	CalculateProjectionMatrix(); //Recaclulate projection
 }
 
 void Simplex::MyCamera::Pitch(float degree)
@@ -36,9 +33,10 @@ void Simplex::MyCamera::Pitch(float degree)
 
 	pitchYawRoll.x += angleRad; //Keep track of pitch rotation
 
-	forward = glm::normalize(forward * glm::cos(angleRad) + up * glm::sin(angleRad));
+	forward = glm::normalize(glm::rotate(forward, angleRad, right));
+	up = glm::normalize(glm::cross(forward, right));
 
-	up = glm::cross(forward, right);
+	m_v3Target = m_v3Position + forward;
 }
 
 void Simplex::MyCamera::Yaw(float degree)
@@ -47,9 +45,10 @@ void Simplex::MyCamera::Yaw(float degree)
 
 	pitchYawRoll.y += angleRad; //Keep track of yaw rotation
 
-	forward = glm::normalize(forward * glm::cos(angleRad) - right * glm::sin(angleRad));
+	forward = glm::normalize(glm::rotate(forward, angleRad, up));
+	right = glm::normalize(glm::cross(forward, up));
 
-	right = glm::cross(forward, up);
+	m_v3Target = m_v3Position + forward;
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -189,17 +188,15 @@ void Simplex::MyCamera::SetPositionTargetAndUp(vector3 a_v3Position, vector3 a_v
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
 	//William Montgomery View Matrix
-	//Calculate rotation matrix from yaw and pitch
-	//Initialize matrices to identity
-	matrix4 pitchMat = IDENTITY_M4;
-	matrix4 yawMat = IDENTITY_M4;
+	//Calculate rotation quaternions from yaw and pitch
+	quaternion qPitch = glm::angleAxis(pitchYawRoll.x, AXIS_X);
+	quaternion qYaw = glm::angleAxis(pitchYawRoll.y, AXIS_Y);
 
-	//Rotate matrices according to stored angles
-	pitchMat = glm::rotate(pitchMat, pitchYawRoll.x, vector3(1.0f, 0.0f, 0.0f));
-	yawMat = glm::rotate(yawMat, pitchYawRoll.y, glm::vec3(0.0f, 1.0f, 0.0f));
+	quaternion orientation = qPitch * qYaw;
+	orientation = glm::normalize(orientation);
 
-	//Combine for rotation matrix
-	matrix4 rotate = pitchMat * yawMat;
+	//Cast orientation quaternion to a usable rotation matrix
+	matrix4 rotate = glm::mat4_cast(orientation);
 
 	//Get translation vector from what camera is looking at
 	matrix4 translate = glm::translate(IDENTITY_M4, -1.0f * m_v3Target);
