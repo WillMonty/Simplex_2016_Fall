@@ -87,6 +87,15 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	//your code goes here---------------------
 	m_v3MinG = m_v3MinL;
 	m_v3MaxG = m_v3MaxL;
+
+	//Get 8 corners of the box to get max and min of x, y, z
+		//They are in local space, globalize them
+			//vector3(matrix4 * vector3(vector,1))
+			//Use m_m4ToWorld on specific axises
+	//Do what we did in the constructor
+		//Find min and max for those 8 corners
+		//Find the size of the box
+			//This time do not divide by 2 we don't need a halfwidth
 	//----------------------------------------
 
 	//we calculate the distance between min and max vectors
