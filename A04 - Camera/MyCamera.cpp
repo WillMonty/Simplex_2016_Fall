@@ -54,7 +54,9 @@ void Simplex::MyCamera::PitchYaw(float pitchDegree, float yawDegree)
 
 	//forward = glm::normalize(vector3(qPitch.x, qPitch.y, qPitch.z)); (Can't just use pitch need to combine both quats. Directions seem 90 degrees off.)
 	//forward = glm::rotate(glm::cross(qPitch, qYaw), forward); (Can't use forward to calculate forward, camera spins in tight circles when rotating)
-	forward = glm::rotate(glm::cross(qPitch, qYaw), AXIS_Z); //(Rotating around Z axis is smooth but in wrong directions. Will randomly line up?)
+	//forward = glm::rotate(glm::cross(qPitch, qYaw), AXIS_Z); //(Rotating around Z axis is smooth but in wrong directions. Will randomly line up?)
+	vector4 forwardCol = m_m4View[2];
+	forward = vector3(-forwardCol.x, -forwardCol.y, -forwardCol.z);
 
 	//Calculate right and up based off forward vector
 	right = glm::cross(forward, AXIS_Y); //Cross forward with global y axis for right vector
