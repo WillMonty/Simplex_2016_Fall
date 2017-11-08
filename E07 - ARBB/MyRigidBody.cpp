@@ -90,33 +90,30 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	
 	vector3 corners[8];
 
-	corners[0] = vector3(m_v3MinG.x, m_v3MinG.y, m_v3MinG.z);
+	//Set up all corners
+	corners[0] = vector3(m_v3MinG.x, m_v3MinG.y, m_v3MinG.z); //Bottom left corner on near face
 	corners[1] = vector3(m_v3MaxG.x, m_v3MinG.y, m_v3MinG.z);
 	corners[2] = vector3(m_v3MinG.x, m_v3MaxG.y, m_v3MinG.z);
 	corners[3] = vector3(m_v3MaxG.x, m_v3MaxG.y, m_v3MinG.z);
 	corners[4] = vector3(m_v3MinG.x, m_v3MinG.y, m_v3MaxG.z);
 	corners[5] = vector3(m_v3MaxG.x, m_v3MinG.y, m_v3MaxG.z);
 	corners[6] = vector3(m_v3MinG.x, m_v3MaxG.y, m_v3MaxG.z);
-	corners[7] = vector3(m_v3MaxG.x, m_v3MaxG.y, m_v3MaxG.z);
+	corners[7] = vector3(m_v3MaxG.x, m_v3MaxG.y, m_v3MaxG.z); //Top right corner on far face
 
 	vector4 toWorldCols[3] = { m_m4ToWorld[0], m_m4ToWorld[1], m_m4ToWorld[2] };
 	
-	vector3 test;
 	//Globalize corners
 	for (int i = 0; i < 8; i++)
 	{
-		corners[i] = corners[i] +
-			(vector3(toWorldCols[0].x, toWorldCols[0].y, toWorldCols[0].z) *
-			vector3(toWorldCols[1].x, toWorldCols[1].y, toWorldCols[1].z) *
-			vector3(toWorldCols[2].x, toWorldCols[2].y, toWorldCols[2].z));
-
-		//This multiplication zeroes everything out. WRONG
-
-		//corners[i] = corners[i] * vector3(transformCol.x, transformCol.y, transformCol.z);
+		corners[i] = vector3(m_m4ToWorld * vector4(corners[i].x, corners[i].y, corners[i].z, 1.0f));
 	}
+
+	//Start max and min as first corner.
+	m_v3MaxG = corners[0];
+	m_v3MinG = corners[0];
 	
-	//Find corner's min and max
-	for (int i = 0; i < 8; i++)
+	//Find corner's min and max (starting from second corner)
+	for (int i = 1; i < 8; i++)
 	{
 		if (m_v3MaxG.x < corners[i].x) m_v3MaxG.x = corners[i].x;
 		else if (m_v3MinG.x > corners[i].x) m_v3MinG.x = corners[i].x;
@@ -127,9 +124,6 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 		if (m_v3MaxG.z < corners[i].z) m_v3MaxG.z = corners[i].z;
 		else if (m_v3MinG.z > corners[i].z) m_v3MinG.z = corners[i].z;
 	}
-
-	//Find size of the box
-	m_v3Center = m_v3MaxG + m_v3MinG;
 
 	//Get 8 corners of the box to get max and min of x, y, z
 		//They are in local space, globalize them
