@@ -275,44 +275,159 @@ void MyRigidBody::AddToRenderList(void)
 }
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
-{
-
-	/*
-	Your code goes here instead of this comment;
-
-	For this method, if there is an axis that separates the two objects
-	then the return will be different than 0; 1 for any separating axis
-	is ok if you are not going for the extra credit, if you could not
-	find a separating axis you need to return 0, there is an enum in
-	Simplex that might help you [eSATResults] feel free to use it.
-	(eSATResults::SAT_NONE has a value of 0)
-	*/
-	
+{	
 	//Find radius of each box (vector center - min OR max G)
 	//Project that to an axis
 		//Get 6 axes from 3 local axes for this and 3 local axes from other ??
 			//Where do these come from?
 				//Ash: "x, y, z and rotation quaternion"
-					//Where is the rotation quaternion???
+					//Where is the rotation quaternion???`
+				//Or do I just globalize standard x, y, z with model matrices of each object?
 		//Project with Dot Product
 	//See if projections overlap
 		//If yes great that's 1/whatever done
 		//No STOP RIGHT THERE THAT AXIS SEPERATES THEM
 
+	//Hold each object's axes globalizes
+	vector3 globalAxes[3]; //This object
+	vector3 otherGlobalAxes[3]; //The object being compared to
+
+	globalAxes[0] = vector3(m_m4ToWorld * vector4(AXIS_X, 1.0f));
+	globalAxes[1] = vector3(m_m4ToWorld * vector4(AXIS_Y, 1.0f));
+	globalAxes[2] = vector3(m_m4ToWorld * vector4(AXIS_Z, 1.0f));
+
+	otherGlobalAxes[0] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_X, 1.0f));
+	otherGlobalAxes[1] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_Y, 1.0f));
+	otherGlobalAxes[2] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_Z, 1.0f));
+
+	//Globalized halfwidths of object's
+	vector3 halfWidthG = (m_v3MaxG - m_v3MinG) / 2.0f;
+	vector3 otherhalfWidthG = (a_pOther->m_v3MaxG - a_pOther->m_v3MinG) / 2.0f;
+
+	//Globalized vector from this object's center to other object's center
+	vector3 centerTocenterG = a_pOther->GetCenterGlobal() - GetCenterGlobal();
+
 	//3 tests against this object's axes
 	for (int i = 0; i < 3; i++)
 	{
+		float thisProjection = glm::dot(halfWidthG, globalAxes[i]);
+		float otherProjection = glm::dot(otherhalfWidthG, globalAxes[i]);
+		float centerTocenterProjection = glm::dot(centerTocenterG, globalAxes[i]);
 
+		if (centerTocenterProjection > thisProjection + otherProjection)
+		{
+			switch (i)
+			{
+			case 0: {return eSATResults::SAT_AX; }
+					break;
+			case 1: {return eSATResults::SAT_AY; }
+					break;
+			case 2: {return eSATResults::SAT_AZ; }
+					break;
+			}
+		}
 	}
 
 	//3 tests against other's axes
 	for (int i = 0; i < 3; i++)
 	{
+		float thisProjection = glm::dot(halfWidthG, otherGlobalAxes[i]);
+		float otherProjection = glm::dot(otherhalfWidthG, otherGlobalAxes[i]);
+		float centerTocenterProjection = glm::dot(centerTocenterG, otherGlobalAxes[i]);
 
+		if (centerTocenterProjection > thisProjection + otherProjection)
+		{
+			switch (i)
+			{
+			case 0: {return eSATResults::SAT_BX; }
+					break;
+			case 1: {return eSATResults::SAT_BY; }
+					break;
+			case 2: {return eSATResults::SAT_BZ; }
+					break;
+			}
+		}
+	}
+	
+	/*
+	//Cross product axes
+	//Ax x Bx, Ay x By, Az x Bz
+	for (int i = 0; i < 3; i++)
+	{
+		vector3 crossAxis = glm::cross(globalAxes[i], otherGlobalAxes[i]);
+
+		float thisProjection = glm::dot(halfWidthG, crossAxis);
+		float otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+		float centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+		if (centerTocenterProjection > thisProjection + otherProjection)
+		{
+			switch (i)
+			{
+			case 0: {return eSATResults::SAT_AXxBX; }
+					break;
+			case 1: {return eSATResults::SAT_AYxBY; }
+					break;
+			case 2: {return eSATResults::SAT_AZxBZ; }
+					break;
+			}
+		}
 	}
 
+	//Ax x By
+	vector3 crossAxis = glm::cross(globalAxes[0], otherGlobalAxes[1]);
 
-	//DONT BRING OBJECT INTO OTHER'S "COORDINATE SPACE". BRING BOTH TO GLOBAL
+	float thisProjection = glm::dot(halfWidthG, crossAxis);
+	float otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+	float centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+	if (centerTocenterProjection > thisProjection + otherProjection) { return eSATResults::SAT_AXxBY; }
+
+	//Ax x Bz
+	crossAxis = glm::cross(globalAxes[0], otherGlobalAxes[2]);
+
+	thisProjection = glm::dot(halfWidthG, crossAxis);
+	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+	if (centerTocenterProjection > thisProjection + otherProjection) { return eSATResults::SAT_AXxBZ; }
+
+	//Ay x Bx
+	crossAxis = glm::cross(globalAxes[1], otherGlobalAxes[0]);
+
+	thisProjection = glm::dot(halfWidthG, crossAxis);
+	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+	if (centerTocenterProjection > thisProjection + otherProjection) { return eSATResults::SAT_AYxBX; }
+
+	//Ay x Bz
+	crossAxis = glm::cross(globalAxes[1], otherGlobalAxes[2]);
+
+	thisProjection = glm::dot(halfWidthG, crossAxis);
+	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+	if (centerTocenterProjection > thisProjection + otherProjection) { return eSATResults::SAT_AYxBZ; }
+
+	//Az x Bx
+	crossAxis = glm::cross(globalAxes[2], otherGlobalAxes[0]);
+
+	thisProjection = glm::dot(halfWidthG, crossAxis);
+	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+	if (centerTocenterProjection > thisProjection + otherProjection) { return eSATResults::SAT_AZxBX; }
+
+	//Az x By
+	crossAxis = glm::cross(globalAxes[2], otherGlobalAxes[1]);
+
+	thisProjection = glm::dot(halfWidthG, crossAxis);
+	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
+	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
+
+	if (centerTocenterProjection > thisProjection + otherProjection) { return eSATResults::SAT_AZxBY; }
+	*/
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
