@@ -276,6 +276,7 @@ void MyRigidBody::AddToRenderList(void)
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
+
 	/*
 	Your code goes here instead of this comment;
 
@@ -286,6 +287,30 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Simplex that might help you [eSATResults] feel free to use it.
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
+	
+	//Find radius of each box (vector center - min OR max G)
+	//Project that to an axis
+		//Get 6 axes from 3 local axes for this and 3 local axes from other ??
+			//Where do these come from?
+				//Ash: "x, y, z and rotation quaternion"
+					//Where is the rotation quaternion???
+		//Project with Dot Product
+	//See if projections overlap
+		//If yes great that's 1/whatever done
+		//No STOP RIGHT THERE THAT AXIS SEPERATES THEM
+
+	//3 tests against this object's axes
+	for (int i = 0; i < 3; i++)
+	{
+
+	}
+
+	//3 tests against other's axes
+	for (int i = 0; i < 3; i++)
+	{
+
+	}
+
 
 	//DONT BRING OBJECT INTO OTHER'S "COORDINATE SPACE". BRING BOTH TO GLOBAL
 
