@@ -281,7 +281,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 		//Get 6 axes from 3 local axes for this and 3 local axes from other ??
 			//Where do these come from?
 				//Ash: "x, y, z and rotation quaternion"
-					//Where is the rotation quaternion???`
+					//Where is the rotation quaternion?
 				//Or do I just globalize standard x, y, z with model matrices of each object?
 		//Project with Dot Product
 	//See if projections overlap
@@ -310,7 +310,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	//3 tests against this object's axes
 	for (int i = 0; i < 3; i++)
 	{
-		float thisProjection = glm::dot(halfWidthG, globalAxes[i]);
+		float thisProjection = glm::dot(halfWidthG, globalAxes[i]); //Calculate as vector and get magnitude instead? Dot isn't just magic magnitude of projection.
 		float otherProjection = glm::dot(otherhalfWidthG, globalAxes[i]);
 		float centerTocenterProjection = glm::dot(centerTocenterG, globalAxes[i]);
 
