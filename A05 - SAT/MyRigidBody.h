@@ -39,6 +39,9 @@ class MyRigidBody
 	std::set<MyRigidBody*> m_CollidingRBSet; //set of rigid bodies this one is colliding with
 
 public:
+	//Shared string between rigid bodies that says what axis is seperating them in SAT (only here for this assignment's debug purposes)
+	static std::string textSAT;
+
 	/*
 	Usage: Constructor
 	Arguments: std::vector<vector3> a_pointList -> list of points to make the Rigid Body for

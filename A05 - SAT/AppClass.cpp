@@ -3,7 +3,7 @@ using namespace Simplex;
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "William Montgomery - wgm8510@rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -61,7 +61,7 @@ void Application::Update(void)
 	if (bColliding)
 		m_pMeshMngr->PrintLine("YES!", C_RED);
 	else
-		m_pMeshMngr->PrintLine("no", C_YELLOW);
+		m_pMeshMngr->PrintLine("no. " + MyRigidBody::textSAT, C_YELLOW); //Add text to say what axis seperates steve and the creeper
 }
 void Application::Display(void)
 {
