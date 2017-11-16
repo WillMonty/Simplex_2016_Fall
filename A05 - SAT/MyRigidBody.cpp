@@ -278,76 +278,87 @@ void MyRigidBody::AddToRenderList(void)
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {	
-	//Globalize axes and other needed variables
+	vector3 axes[3]; //Local axes of this object
+	vector3 otherAxes[3]; //Local axes of the other object
 
-	//Hold each object's axes globalized
-	vector3 globalAxes[3]; //This object
-	vector3 otherGlobalAxes[3]; //The object being compared to
+	axes[0] = vector3(m_m4ToWorld * vector4(AXIS_X, 0));
+	axes[1] = vector3(m_m4ToWorld * vector4(AXIS_Y, 0));
+	axes[2] = vector3(m_m4ToWorld * vector4(AXIS_Z, 0));
 
-	globalAxes[0] = vector3(m_m4ToWorld * vector4(AXIS_X, 1.0f));
-	globalAxes[1] = vector3(m_m4ToWorld * vector4(AXIS_Y, 1.0f));
-	globalAxes[2] = vector3(m_m4ToWorld * vector4(AXIS_Z, 1.0f));
+	otherAxes[0] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_X, 0));
+	otherAxes[1] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_Y, 0));
+	otherAxes[2] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_Z, 0));
 
-	otherGlobalAxes[0] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_X, 1.0f));
-	otherGlobalAxes[1] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_Y, 1.0f));
-	otherGlobalAxes[2] = vector3(a_pOther->m_m4ToWorld * vector4(AXIS_Z, 1.0f));
+	//Variables holding radii of each object for individual tests
+	float radius;
+	float otherRadius;
 
-	//Globalized halfwidths of object's
-	vector3 halfWidthG = (m_v3MaxG - m_v3MinG) / 2.0f;
-	vector3 otherhalfWidthG = (a_pOther->m_v3MaxG - a_pOther->m_v3MinG) / 2.0f;
+	//Half width extents for this object and other object
+	vector3 halfW = m_v3HalfWidth; //Variable solely shorthand for this object
+	vector3 otherHalfW = a_pOther->m_v3HalfWidth;
 
-	//Globalized vector from this object's center to other object's center
-	vector3 centerTocenterG = a_pOther->GetCenterGlobal() - GetCenterGlobal();
+	glm::mat3 rotToThis; //Rotation matrix taking other object and putting it in this object's orientation
+	glm::mat3 AbsRot; //Aformentioned rotation matrix with "epsilon" term added in
 
-	//3 tests against this object's axes
+	//Find Rotation matrix taking other object's rotation to this object's space
 	for (int i = 0; i < 3; i++)
 	{
-		//Calculate the axes length and unit vector only once
-		float axesLength = glm::length(globalAxes[i]);
-		vector3 axesNormalized = glm::normalize(globalAxes[i]);
-
-		//Projection vector formula (for b onto a): (a dot b / magnitude a) * (normalized a)
-		//Project objects' axes to appropriate gloabalized axis of THIS object
-		vector3 thisProjection = ((glm::dot(halfWidthG, globalAxes[i])) / axesLength) * axesNormalized;
-		vector3 otherProjection = ((glm::dot(otherhalfWidthG, globalAxes[i])) / axesLength) * axesNormalized;
-
-		//Project vector connecting objects' centers
-		vector3 centerTocenterProjection = ((glm::dot(centerTocenterG, globalAxes[i])) / axesLength) * axesNormalized;
-
-		//If the length of the center to center projection is greater than the length of this object's projection plus the other object's projection then they're seperated
-		if (glm::length(centerTocenterProjection) > glm::length(thisProjection) + glm::length(otherProjection))
+		for (int j = 0; j < 3; j++)
 		{
-			//A messy switch, but avoids 3 more almost identical copies of this code
-			switch (i)
-			{
-			case 0:
-				textSAT = "AX"; //Update the public string that tells which axis is seperating
-				return eSATResults::SAT_AX;
-				break;
-			case 1:
-				textSAT = "AY";
-				return eSATResults::SAT_AY;
-				break;
-			case 2:
-				textSAT = "AZ";
-				return eSATResults::SAT_AZ;
-				break;
-			}
+			rotToThis[i][j] = glm::dot(axes[i], otherAxes[j]);
 		}
 	}
 
-	//3 tests against other's axes
+	//Find vector to place both object's global centers at same point
+	vector3 centerV = a_pOther->GetCenterGlobal() - GetCenterGlobal();
+	//Take that vector to this object's coordinate frame
+	centerV = vector3(glm::dot(centerV, axes[0]), glm::dot(centerV, axes[1]), glm::dot(centerV, axes[2]));
+
+	//Add epsilon term to rotation matrix prevent issues when edges are parallel causing the cross product to be null
 	for (int i = 0; i < 3; i++)
 	{
-		float axesLength = glm::length(otherGlobalAxes[i]);
-		vector3 axesNormalized = glm::normalize(otherGlobalAxes[i]);
+		for (int j = 0; j < 3; j++)
+		{
+			AbsRot[i][j] = glm::abs(rotToThis[i][j]) + FLT_EPSILON;
+		}
+	}
 
-		//Project objects' axes to appropriate gloabalized axis of THE OTHER object
-		vector3 thisProjection = ((glm::dot(halfWidthG, otherGlobalAxes[i])) / axesLength) * axesNormalized;
-		vector3 otherProjection = ((glm::dot(otherhalfWidthG, otherGlobalAxes[i])) / axesLength) * axesNormalized;
-		vector3 centerTocenterProjection = ((glm::dot(centerTocenterG, otherGlobalAxes[i])) / axesLength) * axesNormalized;
+	//Test for AX, AY, AZ
+	for (int i = 0; i < 3; i++) 
+	{
+		radius = halfW[i];
+		otherRadius = otherHalfW[0] * AbsRot[i][0] + otherHalfW[1] * AbsRot[i][1] + otherHalfW[2] * AbsRot[i][2]; //Get otherRadius from properly rotated half widths
+		
+		//If the absolute value of the center to center vector on (AXIS) is greater than the radius summed with the other radius on (AXIS) then the objects are seperated
+		if (glm::abs(centerV[i]) > radius + otherRadius) 
+		{ 
+			//Switch statement for i is messy but is better than copying the exact same test 6 times for A and B with switched out eSATResults enums.
+			switch (i)
+			{
+				case 0:
+					textSAT = "AX";
+					return eSATResults::SAT_AX;
+					break;
+				case 1:
+					textSAT = "AY";
+					return eSATResults::SAT_AY;
+					break;
+				case 2:
+					textSAT = "AZ";
+					return eSATResults::SAT_AZ;
+					break;
+			}
 
-		if (glm::length(centerTocenterProjection) > glm::length(thisProjection) + glm::length(otherProjection))
+		}
+	}
+
+	//Test for BX, BY, BZ
+	for (int i = 0; i < 3; i++) 
+	{
+		radius = halfW[0] * AbsRot[0][i] + halfW[1] * AbsRot[1][i] + halfW[2] * AbsRot[2][i];
+		otherRadius = otherHalfW[i];
+
+		if (glm::abs(centerV[i]) > radius + otherRadius)
 		{
 			switch (i)
 			{
@@ -363,117 +374,95 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 				textSAT = "BZ";
 				return eSATResults::SAT_BZ;
 				break;
+			}
+
 		}
 	}
-	
-	/*
-	//Cross product axes (CURRENTLY BREAKS COLLISIONS MORE. Waiting until first 6 are working then fixing this.)
-	//Ax x Bx, Ay x By, Az x Bz
-	for (int i = 0; i < 3; i++)
+
+	//Cross products
+	//AX x BX
+	//The halfwidth components in the two axes used in this cross summed together AFTER proper projection onto the plane of this cross
+	radius = halfW[1] * AbsRot[2][0] + halfW[2] * AbsRot[1][0];
+	otherRadius = otherHalfW[1] * AbsRot[0][2] + otherHalfW[2] * AbsRot[0][1];
+	//If the absolute value of the center to center vector on the plane of the current cross is greater than the sum of the radii of the objects projected to the same plane...
+	//Then they are seperated
+	if (glm::abs(centerV[2] * rotToThis[1][0] - centerV[1] * rotToThis[2][0]) > radius + otherRadius) 
 	{
-		vector3 crossAxis = glm::cross(globalAxes[i], otherGlobalAxes[i]);
-
-		float thisProjection = glm::dot(halfWidthG, crossAxis);
-		float otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-		float centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-		if (centerTocenterProjection > thisProjection + otherProjection)
-		{
-			switch (i)
-			{
-			case 0:
-				textSAT = "AXxBX";
-				return eSATResults::SAT_AXxBX;
-				break;
-			case 1:
-				textSAT = "AYxBY";
-				return eSATResults::SAT_AYxBY;
-				break;
-			case 2:
-				textSAT = "AZxBZ";
-				return eSATResults::SAT_AZxBZ;
-				break;
-		}
+		textSAT = "AXxBX";
+		return eSATResults::SAT_AXxBX; 
 	}
 
-	//Ax x By
-	vector3 crossAxis = glm::cross(globalAxes[0], otherGlobalAxes[1]);
-
-	float thisProjection = glm::dot(halfWidthG, crossAxis);
-	float otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-	float centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-	if (centerTocenterProjection > thisProjection + otherProjection) 
-	{ 
+	//AX x BY
+	radius = halfW[1] * AbsRot[2][1] + halfW[2] * AbsRot[1][2];
+	otherRadius = otherHalfW[0] * AbsRot[0][2] + otherHalfW[2] * AbsRot[0][0];
+	if (glm::abs(centerV[2] * rotToThis[1][1] - centerV[1] * rotToThis[2][1]) > radius + otherRadius)
+	{
 		textSAT = "AXxBY";
-		return eSATResults::SAT_AXxBY; 
+		return eSATResults::SAT_AXxBY;
 	}
 
-	//Ax x Bz
-	crossAxis = glm::cross(globalAxes[0], otherGlobalAxes[2]);
-
-	thisProjection = glm::dot(halfWidthG, crossAxis);
-	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-	if (centerTocenterProjection > thisProjection + otherProjection) 
+	//AX x BZ
+	radius = halfW[1] * AbsRot[2][2] + halfW[2] * AbsRot[1][2];
+	otherRadius = otherHalfW[0] * AbsRot[0][1] + otherHalfW[1] * AbsRot[0][0];
+	if (glm::abs(centerV[2] * rotToThis[1][2] - centerV[1] * rotToThis[2][2]) > radius + otherRadius)
 	{
 		textSAT = "AXxBZ";
-		return eSATResults::SAT_AXxBZ; 
+		return eSATResults::SAT_AXxBZ;
 	}
 
-	//Ay x Bx
-	crossAxis = glm::cross(globalAxes[1], otherGlobalAxes[0]);
-
-	thisProjection = glm::dot(halfWidthG, crossAxis);
-	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-	if (centerTocenterProjection > thisProjection + otherProjection) 
+	//AY x BX
+	radius = halfW[0] * AbsRot[2][1] + halfW[2] * AbsRot[0][1];
+	otherRadius = otherHalfW[1] * AbsRot[1][2] + otherHalfW[2] * AbsRot[1][1];
+	if (glm::abs(centerV[0] * rotToThis[2][0] - centerV[2] * rotToThis[0][0]) > radius + otherRadius)
 	{
 		textSAT = "AYxBX";
-		return eSATResults::SAT_AYxBX; 
+		return eSATResults::SAT_AYxBX;
 	}
 
-	//Ay x Bz
-	crossAxis = glm::cross(globalAxes[1], otherGlobalAxes[2]);
+	//AY x BY
+	radius = halfW[0] * AbsRot[2][1] + halfW[2] * AbsRot[0][1];
+	otherRadius = otherHalfW[0] * AbsRot[1][2] + otherHalfW[2] * AbsRot[1][0];
+	if (glm::abs(centerV[0] * rotToThis[2][1] - centerV[2] * rotToThis[0][1]) > radius + otherRadius)
+	{
+		textSAT = "AYxBY";
+		return eSATResults::SAT_AYxBY;
+	}
 
-	thisProjection = glm::dot(halfWidthG, crossAxis);
-	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-	if (centerTocenterProjection > thisProjection + otherProjection) 
+	//AY x BZ
+	radius = halfW[0] * AbsRot[2][2] + halfW[2] * AbsRot[0][2];
+	otherRadius = otherHalfW[0] * AbsRot[1][1] + otherHalfW[1] * AbsRot[1][0];
+	if (glm::abs(centerV[0] * rotToThis[2][2] - centerV[2] * rotToThis[0][2]) > radius + otherRadius)
 	{
 		textSAT = "AYxBZ";
-		return eSATResults::SAT_AYxBZ; 
+		return eSATResults::SAT_AYxBZ;
 	}
 
-	//Az x Bx
-	crossAxis = glm::cross(globalAxes[2], otherGlobalAxes[0]);
-
-	thisProjection = glm::dot(halfWidthG, crossAxis);
-	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-	if (centerTocenterProjection > thisProjection + otherProjection) 
+	//AZ x BX
+	radius = halfW[0] * AbsRot[1][0] + halfW[1] * AbsRot[0][0];
+	otherRadius = otherHalfW[1] * AbsRot[2][2] + otherHalfW[2] * AbsRot[2][1];
+	if (glm::abs(centerV[1] * rotToThis[0][0] - centerV[0] * rotToThis[1][0]) > radius + otherRadius)
 	{
 		textSAT = "AZxBX";
-		return eSATResults::SAT_AZxBX; 
+		return eSATResults::SAT_AZxBX;
 	}
 
-	//Az x By
-	crossAxis = glm::cross(globalAxes[2], otherGlobalAxes[1]);
-
-	thisProjection = glm::dot(halfWidthG, crossAxis);
-	otherProjection = glm::dot(otherhalfWidthG, crossAxis);
-	centerTocenterProjection = glm::dot(centerTocenterG, crossAxis);
-
-	if (centerTocenterProjection > thisProjection + otherProjection) 
+	//AZ x BY
+	radius = halfW[0] * AbsRot[1][1] + halfW[1] * AbsRot[0][1];
+	otherRadius = otherHalfW[0] * AbsRot[2][2] + otherHalfW[2] * AbsRot[2][0];
+	if (glm::abs(centerV[1] * rotToThis[0][1] - centerV[0] * rotToThis[1][1]) > radius + otherRadius)
 	{
 		textSAT = "AZxBY";
-		return eSATResults::SAT_AZxBY; 
+		return eSATResults::SAT_AZxBY;
 	}
-	*/
+
+	//AZ x BZ
+	radius = halfW[0] * AbsRot[1][2] + halfW[1] * AbsRot[0][2];
+	otherRadius = otherHalfW[0] * AbsRot[2][1] + otherHalfW[1] * AbsRot[2][0];
+	if (glm::abs(centerV[1] * rotToThis[0][2] - centerV[0] * rotToThis[1][2]) > radius + otherRadius)
+	{
+		textSAT = "AZxBY";
+		return eSATResults::SAT_AZxBY;
+	}
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
