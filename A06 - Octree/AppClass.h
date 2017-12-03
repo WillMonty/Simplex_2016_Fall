@@ -1,7 +1,3 @@
-/*----------------------------------------------
-Programmer: Alberto Bobadilla (labigm@gmail.com)
-Date: 2017/06
-----------------------------------------------*/
 #ifndef __APPLICATIONCLASS_H_
 #define __APPLICATIONCLASS_H_
 
@@ -24,7 +20,7 @@ class Application
 	uint m_uOctantLevels = 0; //Number of levels in the octree
 	MyOctant* m_pRoot;
 private:
-	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu"; //programmer
+	String m_sProgrammer = "William Montgomery - wgm8510@rit.edu"; //programmer
 
 	static ImGuiObject gui; //GUI object
 	bool m_bGUI_Main = true; //show Main GUI window?
