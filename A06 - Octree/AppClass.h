@@ -18,6 +18,7 @@ class Application
 	uint m_uObjects = 0; //Number of objects in the scene
 	uint m_uOctantLevels = 0; //Number of levels in the octree
 	MyOctant* m_pRoot;
+	bool octreeDisplaying;
 private:
 	String m_sProgrammer = "William Montgomery - wgm8510@rit.edu"; //programmer
 

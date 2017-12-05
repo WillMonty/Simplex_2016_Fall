@@ -240,7 +240,7 @@ void Simplex::MyOctant::Subdivide(void)
 	vector3 offset = ZERO_V3; //Offset of new octant's center from this octant's center
 	for (uint i = 0; i < 8; i++) //Make 8 octants
 	{
-		//Bitwise and operator to determine on what numbers to flip from positive to negative steps in the offset.
+		//Bitwise & operator to determine on what numbers to flip from positive to negative steps in the offset.
 		//Creates all 8 centers for the 8 new octants
 		offset.x = ((i & 1) ? step : -step);
 		offset.y = ((i & 2) ? step : -step);

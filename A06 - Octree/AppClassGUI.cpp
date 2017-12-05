@@ -55,6 +55,8 @@ void Application::DrawGUI(void)
 			ImGui::Text("	  -: Increment Octree subdivision\n");
 			ImGui::Text("	  +: Decrement Octree subdivision\n");
 			ImGui::Separator();
+			ImGui::Text("William Montgomery Octree Controls:");
+			ImGui::Text("     Spacebar: Toggle Display");
 			ImGui::TextColored(ImColor(255, 255, 0), "Octree\n");
 		}
 		ImGui::End();
