@@ -252,10 +252,13 @@ void Simplex::MyOctant::Subdivide(void)
 		m_pChild[i]->m_pRoot = m_pRoot;
 		m_pChild[i]->m_pParent = this;
 
+		//Assign ID's and populate entity list
+		m_pChild[i]->AssignIDtoEntity();
+
 		//Subdivide with these children if they contain more than the ideal entity count
 		if (m_pChild[i]->ContainsMoreThan(m_uIdealEntityCount))
 		{
-			m_pChild[i]->Subdivide(); //doesn't get here???
+			m_pChild[i]->Subdivide();
 		}
 	}
 
@@ -317,7 +320,7 @@ void Simplex::MyOctant::ConstructTree(uint a_nMaxLevel)
 	//Add ID's of octant's to contained entities
 	AssignIDtoEntity();
 
-	//Not necessary for assignment, but will be used elsewhere to determine how many subdivisions to make
+	//Subdivide if contains more than ideal count
 	if (ContainsMoreThan(m_uIdealEntityCount)) 
 	{
 		Subdivide();
@@ -337,6 +340,7 @@ void Simplex::MyOctant::AssignIDtoEntity(void)
 			if (IsColliding(i)) //If colliding add it to this octant's entity list
 			{
 				m_EntityList.push_back(i);
+				m_pEntityMngr->ClearDimensionSet(i); //Clear previous dimensions on this entity
 				m_pEntityMngr->AddDimension(i, m_uID); //Add "dimension" to entity with this octant's ID to keep what octant it is in.
 			}
 		}
