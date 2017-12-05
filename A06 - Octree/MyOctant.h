@@ -2,6 +2,8 @@
 #define __MYOCTANT_H_
 
 #include "Definitions.h"
+#include "MyRigidBody.h"
+#include "MyEntityManager.h"
 namespace Simplex
 {
 	class MyOctant
@@ -17,7 +19,7 @@ namespace Simplex
 		float m_fSize = 0.0f; //Size of the octant
 
 		MeshManager* m_pMeshMngr = nullptr;//Mesh Manager singleton
-		EntityManager* m_pEntityMngr = nullptr; //Entity Manager Singleton
+		MyEntityManager* m_pEntityMngr = nullptr; //Entity Manager Singleton
 
 		vector3 m_v3Center = vector3(0.0f); //Will store the center point of the octant
 		vector3 m_v3Min = vector3(0.0f); //Will store the minimum vector of the octant
@@ -54,13 +56,13 @@ namespace Simplex
 		ARGUMENTS: class object to copy
 		OUTPUT: class object instance
 		*/
-		MyOctant(Octant const& other);
+		MyOctant(MyOctant const& other);
 		/*
 		USAGE: Copy Assignment Operator
 		ARGUMENTS: class object to copy
 		OUTPUT: ---
 		*/
-		MyOctant& operator=(Octant const& other);
+		MyOctant& operator=(MyOctant const& other);
 		/*
 		USAGE: Destructor
 		ARGUMENTS: ---
@@ -73,7 +75,7 @@ namespace Simplex
 		- Octant& other -> object to swap content from
 		OUTPUT: ---
 		*/
-		void Swap(Octant& other);
+		void Swap(MyOctant& other);
 		/*
 		USAGE: Gets this octant's size
 		ARGUMENTS: ---

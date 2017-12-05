@@ -56,8 +56,13 @@ void Application::Display(void)
 
 	//display octree
 	if (m_uOctantID == -1)
+	{
 		m_pRoot->Display();
-	m_pRoot->Display();
+	}
+	else
+	{
+		m_pRoot->Display(m_uOctantID, vector3(1.0f, 1.0f, 1.0f));
+	}
 	
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
