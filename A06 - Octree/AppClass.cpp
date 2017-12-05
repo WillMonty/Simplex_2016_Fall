@@ -30,6 +30,7 @@ void Application::InitVariables(void)
 		}
 	}
 	m_uOctantLevels = 1;
+	m_pRoot = new MyOctant(m_uOctantLevels, 1);
 	m_pEntityMngr->Update();
 }
 void Application::Update(void)
@@ -61,7 +62,7 @@ void Application::Display(void)
 	}
 	else
 	{
-		m_pRoot->Display(m_uOctantID, vector3(1.0f, 1.0f, 1.0f));
+		m_pRoot->Display(m_uOctantID);
 	}
 	
 	// draw a skybox

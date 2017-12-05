@@ -1,9 +1,9 @@
 #ifndef __MYOCTANT_H_
 #define __MYOCTANT_H_
 
-#include "Definitions.h"
 #include "MyRigidBody.h"
 #include "MyEntityManager.h"
+#include "Definitions.h"
 namespace Simplex
 {
 	class MyOctant

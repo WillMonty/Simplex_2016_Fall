@@ -6,7 +6,6 @@
 #include "ControllerConfiguration.h"
 #include "imgui\ImGuiObject.h"
 
-#include "MyEntityManager.h"
 #include "MyOctant.h"
 
 namespace Simplex

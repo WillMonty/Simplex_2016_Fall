@@ -20,6 +20,7 @@ MyOctant::MyOctant(uint a_nMaxLevel, uint a_nIdealEntityCount)
 
 	m_uIdealEntityCount = a_nIdealEntityCount;
 	m_uMaxLevel = a_nMaxLevel;
+	m_uLevel = 0;
 
 	//////MyRigidBody has constuctor that takes list of points and makes a rigidbody around them. Use that with all the entities values to quickly find center and size of all entities in scene
 
@@ -45,7 +46,7 @@ MyOctant::MyOctant(uint a_nMaxLevel, uint a_nIdealEntityCount)
 	//Get size and min/max from max halfwidth extent
 	m_fSize = hwMax * 2.0f;
 	m_v3Min = m_v3Center - vector3(hwMax);
-	m_v3Min = m_v3Center + vector3(hwMax);
+	m_v3Max = m_v3Center + vector3(hwMax);
 
 	ConstructTree(m_uMaxLevel); //Make the tree from the passed level
 }
@@ -164,16 +165,16 @@ bool Simplex::MyOctant::IsColliding(uint a_uRBIndex)
 
 	//Use AABB collisions
 	//X
-	if (m_v3Min.x > otherMin.x) { return false; }
-	if (m_v3Max.x < otherMax.x) { return false; }
+	if (m_v3Max.x < otherMin.x) { return false; }
+	if (m_v3Min.x > otherMax.x) { return false; }
 
 	//Y
-	if (m_v3Min.y > otherMin.y) { return false; }
-	if (m_v3Max.y < otherMax.y) { return false; }
+	if (m_v3Max.y < otherMin.y) { return false; }
+	if (m_v3Min.y > otherMax.y) { return false; }
 
 	//Z
-	if (m_v3Min.z > otherMin.z) { return false; }
-	if (m_v3Max.z < otherMax.z) { return false; }
+	if (m_v3Max.z < otherMin.z) { return false; }
+	if (m_v3Min.z > otherMax.z) { return false; }
 
 	return true;
 }
@@ -192,7 +193,7 @@ void Simplex::MyOctant::Display(uint a_nIndex, vector3 a_v3Color)
 		//Go down the tree and see if this is for children to display
 		for (uint i = 0; i < m_uChildren; i++)
 		{
-			m_pChild[i]->Display(a_nIndex, a_v3Color);
+			m_pChild[i]->Display(a_nIndex);
 		}
 	}
 }
@@ -244,12 +245,18 @@ void Simplex::MyOctant::Subdivide(void)
 		offset.x = ((i & 1) ? step : -step);
 		offset.y = ((i & 2) ? step : -step);
 		offset.z = ((i & 4) ? step : -step);
-		m_pChild[i] = new MyOctant(m_v3Center + offset, step);
+		m_pChild[i] = new MyOctant(m_v3Center + offset, (m_fSize/2.0f));
 
 		//Set variables from this octant
 		m_pChild[i]->m_uLevel = m_uLevel + 1;
 		m_pChild[i]->m_pRoot = m_pRoot;
 		m_pChild[i]->m_pParent = this;
+
+		//Subdivide with these children if they contain more than the ideal entity count
+		if (m_pChild[i]->ContainsMoreThan(m_uIdealEntityCount))
+		{
+			m_pChild[i]->Subdivide(); //doesn't get here???
+		}
 	}
 
 	m_uChildren = 8;
@@ -269,7 +276,7 @@ MyOctant * Simplex::MyOctant::GetParent(void)
 
 bool Simplex::MyOctant::IsLeaf(void)
 {
-	if (m_uChildren > 0){ return true; }
+	if (m_uChildren == 0){ return true; }
 	return false;
 }
 
@@ -297,7 +304,7 @@ void Simplex::MyOctant::KillBranches(void)
 
 void Simplex::MyOctant::ConstructTree(uint a_nMaxLevel)
 {
-	if (a_nMaxLevel != 0) { return; } //Only do this to the root
+	if (m_uLevel != 0) { return; } //Only do this to the root
 
 	//Wipe tree
 	ClearEntityList();
